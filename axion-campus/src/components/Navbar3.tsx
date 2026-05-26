@@ -5,10 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 
 type SessionInfo = { nom_etudiant: string; ecole_nom: string; promo?: string }
 
-// Pages où la Navbar globale ne doit PAS s'afficher (ces pages ont leur propre nav)
-const NO_NAV_PATHS = ['/', '/admin', '/tarifs']
-// Pages auth : navbar minimaliste sans session
-const AUTH_PATHS   = ['/connexion', '/inscription', '/reconnexion']
+// Pages ou la navbar ne s affiche PAS du tout
+const NO_NAV_PATHS = ['/', '/admin']
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -47,10 +45,11 @@ export default function Navbar() {
     ? session.nom_etudiant.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?'
 
-  // Pas de navbar sur ces pages (elles ont la leur)
-  if (NO_NAV_PATHS.some(p => pathname === p || pathname.startsWith('/admin'))) return null
+  // Sur landing & admin : pas de navbar du tout
+  if (NO_NAV_PATHS.includes(pathname)) return null
 
-  const isAuthPage = AUTH_PATHS.includes(pathname)
+  // Sur les pages connexion / inscription / reconnexion : navbar minimaliste sans session
+  const isAuthPage = ['/connexion', '/inscription', '/reconnexion'].includes(pathname)
 
   return (
     <nav className="w-full h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-50">
@@ -61,12 +60,14 @@ export default function Navbar() {
         <span className="text-sm font-bold text-[#1a3c6e] tracking-tight">AXION CAMPUS</span>
       </button>
 
+      {/* Si page auth → bouton retour discret */}
       {isAuthPage && (
         <button onClick={() => router.push('/')} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">
           Accueil →
         </button>
       )}
 
+      {/* Si session active → menu utilisateur */}
       {!isAuthPage && session?.nom_etudiant && (
         <div className="relative" ref={menuRef}>
           <button onClick={() => setOpen(o => !o)} className="flex items-center gap-2.5 hover:bg-slate-50 rounded-xl px-3 py-1.5 transition-colors">
@@ -81,8 +82,7 @@ export default function Navbar() {
               <span className="text-xs font-bold text-white">{initials}</span>
             </div>
             <span className="text-sm font-medium text-slate-700 hidden sm:block max-w-[140px] truncate">{session.nom_etudiant}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
               <path d="M6 9l6 6 6-6"/>
             </svg>
           </button>
@@ -100,17 +100,18 @@ export default function Navbar() {
                   </div>
                 </div>
               </div>
+
               <div className="py-1.5">
                 {[
-                  { icon:'user', label:'Mon profil', sub: session.promo || 'Étudiant' },
-                  { icon:'cert', label:'Mes certifications', sub:'Historique des tests' },
-                  { icon:'school', label:'Établissement', sub: session.ecole_nom },
+                  { icon: 'user', label: 'Mon profil', sub: session.promo || 'Etudiant' },
+                  { icon: 'cert', label: 'Mes certifications', sub: 'Historique des tests' },
+                  { icon: 'school', label: 'Etablissement', sub: session.ecole_nom },
                 ].map(item => (
                   <button key={item.label} onClick={() => setOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors group">
                     <span className="text-slate-400 group-hover:text-[#1a3c6e] transition-colors">
-                      {item.icon==='user'&&<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>}
-                      {item.icon==='cert'&&<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>}
-                      {item.icon==='school'&&<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>}
+                      {item.icon === 'user' && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>}
+                      {item.icon === 'cert' && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>}
+                      {item.icon === 'school' && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>}
                     </span>
                     <div>
                       <p className="text-sm font-medium text-slate-700 group-hover:text-slate-900 text-left">{item.label}</p>
@@ -119,14 +120,15 @@ export default function Navbar() {
                   </button>
                 ))}
               </div>
+
               <div className="border-t border-slate-100 py-1.5">
                 <button onClick={disconnect} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors group">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-red-500 text-left">Se déconnecter</p>
-                    <p className="text-xs text-slate-400 text-left">Retour à l'accueil</p>
+                    <p className="text-sm font-medium text-red-500 text-left">Se deconnecter</p>
+                    <p className="text-xs text-slate-400 text-left">Retour a l accueil</p>
                   </div>
                 </button>
               </div>
