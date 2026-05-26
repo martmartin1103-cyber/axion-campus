@@ -35,34 +35,19 @@ export default function DiagnosticPage() {
     setSubmitting(true)
     setError(null)
 
-    // BUG 1 CORRIGÉ : lecture de la bonne clé axion_session (et non axion_user)
-    let session: Record<string, string> = {}
+    let userInfo: Record<string, unknown> = {}
     try {
-      const raw = localStorage.getItem('axion_session')
-      if (raw) session = JSON.parse(raw)
+      const raw = localStorage.getItem('axion_user')
+      if (raw) userInfo = JSON.parse(raw)
     } catch {
       // ignore parse errors
-    }
-
-    // Vérification que les données de session sont bien présentes
-    if (!session.passe_id || !session.ecole_id || !session.nom_etudiant) {
-      setError('Session expirée ou invalide. Veuillez recommencer depuis la page d\'accueil.')
-      setSubmitting(false)
-      return
     }
 
     try {
       const res = await fetch('/api/submit-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // BUG 2 CORRIGÉ : payload correct avec reponses (et non answers) + champs session explicites
-        body: JSON.stringify({
-          passe_id: session.passe_id,
-          ecole_id: session.ecole_id,
-          nom_etudiant: session.nom_etudiant,
-          promo: session.promo ?? '',
-          reponses: answers,
-        }),
+        body: JSON.stringify({ answers, ...userInfo }),
       })
 
       if (!res.ok) {
@@ -70,10 +55,8 @@ export default function DiagnosticPage() {
         throw new Error(data?.error ?? 'Erreur lors de la soumission')
       }
 
-      const data = await res.json()
-
-      // BUG 3 CORRIGÉ : paramètre session_id (et non session) + passage de cert_uid
-      router.push(`/resultats?session_id=${data.session_id}&cert_uid=${data.cert_uid}`)
+      const { session_id } = await res.json()
+      router.push(`/resultats?session=${session_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
       setSubmitting(false)
