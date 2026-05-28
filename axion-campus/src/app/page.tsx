@@ -1,199 +1,267 @@
 'use client'
 
 /**
- * Branche : feat/us5-us8-medium
- * Remplace : src/app/page.tsx  (version issue de la branche feat/us1-us4-landing)
+ * Page d'accueil hub — src/app/page.tsx
+ * Remplace l'ancienne landing école
  *
- * Seul changement vs version US1-US4 :
- * - Import de LearningOutcomes (US8)
- * - Insertion entre CurriculumSection et SocialProof
- *
- * Le reste du fichier est identique à la version précédente.
- * Si vous mergez les branches dans l'ordre, seul le diff ci-dessous s'applique.
+ * Design : fond blanc/gris très clair #F7F8FA, typographie éditoriale Syne,
+ * espacements généreux, ton épuré et reposant.
+ * Oriente chaque visiteur vers son profil en 3 secondes.
+ * Footer légal complet via SiteFooter.
  */
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import CurriculumSection from '@/components/CurriculumSection'
-import LearningOutcomes  from '@/components/LearningOutcomes'   /* ← US8 */
-import SocialProof       from '@/components/SocialProof'
+import SiteFooter from '@/components/SiteFooter'
 
-/* ── Données hero ── */
-const BULLETS = [
-  { icon: '⚡', text: '10 questions · 3 minutes chrono' },
-  { icon: '🎯', text: '5 dimensions IA évaluées simultanément' },
-  { icon: '📜', text: 'Certificat PDF + partage LinkedIn instantané' },
+/* ── Profils audience ── */
+const PROFILES = [
+  {
+    id: 'ecoles',
+    href: '/pour-les-ecoles',
+    emoji: '🎓',
+    badge: 'Établissements',
+    title: 'Vous dirigez une école ou une université',
+    desc: 'Certifiez vos promotions en IA agentique. Dashboard de suivi, passes étudiants, rapport PDF de promotion.',
+    cta: 'Découvrir l\'offre écoles',
+    accent: '#0A66C2',
+    bg: 'from-[#EEF4FC] to-white',
+    border: 'border-[#0A66C2]/20 hover:border-[#0A66C2]/50',
+    ctaStyle: 'bg-[#0A66C2] text-white hover:bg-[#0958a8]',
+  },
+  {
+    id: 'entreprises',
+    href: '/pour-les-entreprises',
+    emoji: '🏢',
+    badge: 'Entreprises',
+    title: 'Vous formez vos collaborateurs à l\'IA',
+    desc: 'Mesurez le niveau IA réel de vos équipes. ROI immédiat, benchmark interne, rapport RH/L&D.',
+    cta: 'Découvrir l\'offre entreprises',
+    accent: '#D4A843',
+    bg: 'from-[#FDF8EE] to-white',
+    border: 'border-[#D4A843]/25 hover:border-[#D4A843]/60',
+    ctaStyle: 'bg-[#D4A843] text-white hover:bg-[#c49933]',
+  },
+  {
+    id: 'independants',
+    href: '/pour-moi',
+    emoji: '🙋',
+    badge: 'Indépendants & Pro',
+    title: 'Vous voulez valoriser votre expertise IA',
+    desc: 'Obtenez un certificat personnel partageable sur LinkedIn. Évaluez-vous en 3 minutes, progressez.',
+    cta: 'Démarrer mon diagnostic',
+    accent: '#E8593A',
+    bg: 'from-[#FEF2EE] to-white',
+    border: 'border-[#E8593A]/20 hover:border-[#E8593A]/50',
+    ctaStyle: 'bg-[#E8593A] text-white hover:bg-[#d44a2b]',
+  },
 ]
 
-function HexGrid() {
-  const coords = [
-    [220, 60], [270, 100], [270, 40], [170, 100], [220, 140],
-    [170, 20], [320, 80], [170, 160], [270, 160],
-  ]
-  return (
-    <svg className="absolute right-0 top-0 opacity-[0.06] pointer-events-none" width="380" height="220" viewBox="0 0 380 220">
-      {coords.map(([cx, cy], i) => (
-        <polygon key={i}
-          points={`${cx},${cy-32} ${cx+28},${cy-16} ${cx+28},${cy+16} ${cx},${cy+32} ${cx-28},${cy+16} ${cx-28},${cy-16}`}
-          fill="none" stroke="#7DD3FC"
-          strokeWidth={i % 3 === 0 ? '1.5' : '0.8'}
-          strokeOpacity={i % 2 === 0 ? '1' : '0.5'}
-        />
-      ))}
-    </svg>
-  )
-}
+/* ── Stats ── */
+const STATS = [
+  { value: '247+', label: 'certifiés' },
+  { value: '38',   label: 'établissements' },
+  { value: '5',    label: 'dimensions IA' },
+  { value: '3 min',label: 'pour évaluer' },
+]
 
-function HeroStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-3xl font-black text-white leading-none" style={{ fontFamily: "'Syne', sans-serif" }}>{value}</span>
-      <span className="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap">{label}</span>
-    </div>
-  )
-}
-
-export default function LandingPage() {
+export default function HomePage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const session = localStorage.getItem('axion_session')
-    if (session) {
-      try {
-        const s = JSON.parse(session)
-        if (s.passe_id) { router.replace('/diagnostic'); return }
-      } catch {}
-    }
+    try {
+      const s = JSON.parse(localStorage.getItem('axion_session') ?? '{}')
+      if (s.passe_id) router.replace('/diagnostic')
+    } catch {}
   }, [router])
 
   if (!mounted) return null
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: '#060f1e' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#F7F8FA', fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ════════ HERO ════════ */}
-      <section className="relative min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 pt-24 pb-16 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none grid-bg"/>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] rounded-full bg-[#0A66C2] opacity-[0.07] blur-[140px] pointer-events-none"/>
-        <div className="absolute right-0 top-8 hidden lg:block"><HexGrid/></div>
+      {/* ══════════════════════════════════════════════
+          HERO — épuré, aéré, au-dessus du fold
+          ══════════════════════════════════════════════ */}
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-28 pb-20 overflow-hidden">
 
-        <div className="relative z-10 w-full max-w-4xl mx-auto text-center flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 bg-[#0A66C2]/10 border border-[#0A66C2]/30 rounded-full px-4 py-1.5 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#7DD3FC] animate-pulse"/>
-            <span className="text-xs text-[#7DD3FC] font-semibold tracking-widest uppercase">Certification IA Agentique · AXION Campus</span>
+        {/* Fond très subtil */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(10,102,194,0.06) 0%, transparent 70%)',
+          }}
+        />
+
+        {/* Ligne décorative top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-16 bg-gradient-to-b from-[#0A66C2]/40 to-transparent"/>
+
+        <div className="relative max-w-3xl mx-auto">
+
+          {/* Label */}
+          <div className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 mb-8 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0A66C2]"/>
+            <span className="text-xs font-semibold text-slate-500 tracking-wider uppercase">
+              Plateforme de certification IA
+            </span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-white leading-[1.02] mb-6 tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Certifiez votre{' '}
-            <span className="relative inline-block">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0A66C2] via-[#38BDF8] to-[#7DD3FC]">maturité IA</span>
-              <span className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-gradient-to-r from-[#0A66C2] to-[#7DD3FC] opacity-60"/>
+          {/* H1 */}
+          <h1
+            className="text-5xl sm:text-6xl font-black text-slate-900 leading-[1.06] mb-6 tracking-tight"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            La certification IA{' '}
+            <br className="hidden sm:block"/>
+            <span
+              className="text-transparent bg-clip-text"
+              style={{ backgroundImage: 'linear-gradient(135deg, #0A66C2 0%, #38BDF8 100%)' }}
+            >
+              qui compte vraiment.
             </span>
           </h1>
 
-          <p className="text-slate-300 text-xl sm:text-2xl max-w-2xl leading-relaxed mb-10">
-            3 minutes. Un score sur 1000. Un certificat reconnu par votre école.
+          {/* Sous-titre */}
+          <p className="text-slate-500 text-xl max-w-xl mx-auto leading-relaxed mb-10">
+            Évaluez votre maturité en IA agentique en 3 minutes.
+            Score sur 1000, grade A–D, certificat vérifiable.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-10">
-            {BULLETS.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-slate-400">
-                <span className="text-base">{b.icon}</span>{b.text}
+          {/* Stats horizontales légères */}
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-14">
+            {STATS.map((s, i) => (
+              <div key={i} className="flex flex-col items-center">
+                <span
+                  className="text-2xl font-black text-slate-900"
+                  style={{ fontFamily: "'Syne', sans-serif" }}
+                >
+                  {s.value}
+                </span>
+                <span className="text-xs text-slate-400 mt-0.5">{s.label}</span>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-16">
-            <button onClick={() => router.push('/inscription')}
-              className="group relative bg-[#0A66C2] hover:bg-[#0958a8] text-white font-bold px-8 py-4 rounded-2xl text-base transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl hover:shadow-[#0A66C2]/30 flex items-center gap-2">
-              Obtenir ma certification
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
-            <button onClick={() => document.getElementById('programme')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-slate-400 hover:text-white font-medium px-6 py-4 rounded-2xl border border-white/[0.1] hover:border-white/[0.25] transition-colors text-base flex items-center gap-2">
-              Voir le programme
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-60"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-8 sm:gap-12">
-            <HeroStat value="5" label="dimensions IA"/>
-            <div className="w-px h-8 bg-white/10"/>
-            <HeroStat value="10" label="questions ciblées"/>
-            <div className="w-px h-8 bg-white/10"/>
-            <HeroStat value="1 000" label="points max"/>
-            <div className="w-px h-8 bg-white/10 hidden sm:block"/>
-            <div className="hidden sm:flex flex-col items-center">
-              <div className="flex -space-x-2 mb-1">
-                {['#0A66C2','#38BDF8','#818CF8','#34D399'].map((c, i) => (
-                  <div key={i} className="w-6 h-6 rounded-full border-2 border-[#060f1e]" style={{ backgroundColor: c }}/>
-                ))}
+      {/* ══════════════════════════════════════════════
+          3 CARTES PROFIL
+          ══════════════════════════════════════════════ */}
+      <section className="px-6 pb-20 max-w-5xl mx-auto w-full">
+        <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-[0.15em] mb-8">
+          Choisissez votre profil
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {PROFILES.map(p => (
+            <div
+              key={p.id}
+              className={`
+                group relative flex flex-col bg-gradient-to-b ${p.bg}
+                border rounded-3xl p-7 ${p.border}
+                transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer
+              `}
+              onClick={() => router.push(p.href)}
+            >
+              {/* Badge + emoji */}
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 border border-slate-200 bg-white rounded-full px-2.5 py-1">
+                  {p.badge}
+                </span>
+                <span className="text-2xl">{p.emoji}</span>
               </div>
-              <span className="text-[11px] text-slate-500">247+ certifiés</span>
+
+              {/* Titre */}
+              <h2
+                className="text-base font-bold text-slate-900 mb-3 leading-snug"
+                style={{ fontFamily: "'Syne', sans-serif" }}
+              >
+                {p.title}
+              </h2>
+
+              {/* Description */}
+              <p className="text-sm text-slate-500 leading-relaxed flex-1 mb-6">
+                {p.desc}
+              </p>
+
+              {/* CTA */}
+              <button
+                className={`
+                  w-full py-2.5 rounded-xl text-sm font-semibold
+                  transition-all duration-150 ${p.ctaStyle}
+                  flex items-center justify-center gap-2 group-hover:gap-3
+                `}
+              >
+                {p.cta}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════
+          MINI-SECTION CONFIANCE
+          ══════════════════════════════════════════════ */}
+      <section className="border-t border-slate-200 bg-white px-6 py-12">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-8">
+
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Pourquoi Axion Campus ?</p>
+            <h3
+              className="text-xl font-black text-slate-900"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Le seul diagnostic IA orienté compétences métier.
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 shrink-0">
+            {[
+              { icon: '⚡', label: '3 min' },
+              { icon: '🎯', label: '5 dimensions' },
+              { icon: '📜', label: 'Certificat PDF' },
+              { icon: '🔗', label: 'LinkedIn ready' },
+            ].map((f, i) => (
+              <div key={i} className="flex flex-col items-center text-center">
+                <span className="text-xl mb-1">{f.icon}</span>
+                <span className="text-xs font-semibold text-slate-500">{f.label}</span>
+              </div>
+            ))}
           </div>
         </div>
-
-        <button onClick={() => document.getElementById('programme')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-600 hover:text-slate-400 transition-colors animate-bounce">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-        </button>
       </section>
 
-      {/* ════════ CARTES ACTION ════════ */}
-      <section className="px-5 py-12 max-w-3xl mx-auto w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button onClick={() => router.push('/connexion')}
-            className="group relative bg-[#0A66C2] hover:bg-[#0958a8] rounded-2xl p-7 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#0A66C2]/30">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12 12 0 01.665 6.479A12 12 0 0112 20.055a12 12 0 01-6.824-2.998 12 12 0 01.665-6.479L12 14z"/></svg>
-            </div>
-            <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Je suis étudiant</p>
-            <h3 className="text-white text-lg font-bold mb-1.5">Passer le diagnostic</h3>
-            <p className="text-white/60 text-sm leading-relaxed">Entrez votre code d'accès fourni par votre école.</p>
-            <div className="absolute bottom-5 right-5 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-          </button>
-
-          <button onClick={() => router.push('/admin')}
-            className="group relative bg-[#0d1b2e] hover:bg-[#111f33] border border-slate-700 hover:border-[#0A66C2]/50 rounded-2xl p-7 text-left transition-all duration-300 hover:scale-[1.02]">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center mb-4">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7DD3FC" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-            </div>
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Je suis administrateur</p>
-            <h3 className="text-white text-lg font-bold mb-1.5">Accéder au dashboard</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">KPIs, résultats et satisfaction de votre promo.</p>
-            <div className="absolute bottom-5 right-5 w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-slate-700 transition-colors">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7DD3FC" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-          </button>
+      {/* ══════════════════════════════════════════════
+          SECTION DÉJÀ CERTIFIÉ
+          ══════════════════════════════════════════════ */}
+      <section className="px-6 py-10 max-w-5xl mx-auto w-full">
+        <div className="bg-white border border-slate-200 rounded-2xl px-7 py-6 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-slate-800 mb-0.5">Vous avez déjà passé le diagnostic ?</p>
+            <p className="text-sm text-slate-400">Retrouvez vos résultats et votre certificat en un clic.</p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button onClick={() => router.push('/reconnexion')}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+              Mes résultats
+            </button>
+            <button onClick={() => router.push('/admin')}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-[#0A66C2] border border-[#0A66C2]/30 hover:bg-[#EEF4FC] transition-colors">
+              Dashboard admin →
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* ════════ US3 — Programme ════════ */}
-      <CurriculumSection/>
-
-      {/* ════════ US8 — Learning Outcomes ════════ */}
-      <LearningOutcomes/>
-
-      {/* ════════ US4 — Social Proof ════════ */}
-      <SocialProof/>
-
-      {/* Lien tarifs */}
-      <section className="py-8 text-center">
-        <button onClick={() => router.push('/tarifs')}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-300 transition-colors text-sm mx-auto">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          Voir nos offres et tarifs pour établissements
-        </button>
-      </section>
-
-      <footer className="text-center py-5 text-xs text-slate-600 border-t border-white/[0.04]">
-        Certification privée AXION CAMPUS™ — Non reconnue par l'État
-      </footer>
+      {/* ══════════════════════════════════════════════
+          FOOTER LÉGAL
+          ══════════════════════════════════════════════ */}
+      <div className="mt-auto">
+        <SiteFooter variant="light"/>
+      </div>
     </div>
   )
 }
